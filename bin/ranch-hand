@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+module RanchHandCLI
+  require 'gli'
+  require 'ranch_hand'
+
+  include GLI::App
+  # our cli is wrapped in a module (to not pollute the global namespace with GLI methods),
+  # so we need to extend here for things to work
+  extend self
+
+  program_desc 'Command line tools for using Rancher in a Kubernetes development environment'
+
+  version RanchHand::VERSION
+
+  subcommand_option_handling :normal
+  arguments :strict
+
+  desc 'Execs into a running container'
+  command :exec do |c|
+    c.arg_name 'namespace'
+    c.action do |global_options, options, args|
+      RanchHand::KubeCtl.exec(args[0])
+    end
+  end
+
+  pre do |global, command, options, args|
+    # Pre logic here
+    # Return true to proceed; false to abort and not call the
+    # chosen command
+    # Use skips_pre before a command to skip this block
+    # on that command only
+    true
+  end
+
+  post do |global, command, options, args|
+    # Post logic here
+    # Use skips_post before a command to skip this
+    # block on that command only
+  end
+
+  on_error do |exception|
+    # Error logic here
+    # return false to skip default error handling
+    true
+  end
+
+  exit run(ARGV)
+end
