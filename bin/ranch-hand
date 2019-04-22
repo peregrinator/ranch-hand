@@ -16,8 +16,8 @@ module RanchHandCLI
   arguments :strict
 
   desc 'Execs into a running container'
+  arg_name 'namespace'
   command :exec do |c|
-    c.arg_name 'namespace'
     c.action do |global_options, options, args|
       RanchHand::KubeCtl.exec(args[0])
     end
