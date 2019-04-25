@@ -15,6 +15,13 @@ module RanchHandCLI
   subcommand_option_handling :normal
   arguments :strict
 
+  desc 'Sets up ranch hand'
+  command :setup do |c|
+    c.action do |global_options, options, args|
+      RanchHand::Base.setup
+    end
+  end
+
   desc 'Execs into a running container'
   arg_name 'namespace'
   command :exec do |c|
