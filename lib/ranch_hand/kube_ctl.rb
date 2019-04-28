@@ -7,17 +7,26 @@ module RanchHand
     end
 
     def exec(namespace)
-      get_pods = "rancher kubectl -n #{namespace} get po"
-      pods = command(printer: :null).run(get_pods).out.split("\n")[1..-1].map{|l| l.split(/\s+/)[0]}
+      pod = select_pod(namespace)
+      cmd = select_command(namespace, pod)
       
+      # run cmd
+      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
+    end
+
+    def select_pod(namespace)
+      pods = pods(namespace)
       pod = prompt.enum_select("Which pod?", pods, per_page: 10,
         default: pods.index(
           storage.get("exec:#{namespace}:latest:pod")
         ).to_i + 1
       )
       storage.set("exec:#{namespace}:latest:pod", pod)
-      
-      commands = ["Add command"] + all_commands(namespace, pod)
+      pod
+    end
+
+    def select_command(namespace, pod)
+      commands =  ["Add command"] + all_commands(namespace, pod)
       cmd = prompt.enum_select('What command?', commands, per_page: 10,
         default: commands.index(
           storage.get("exec:#{namespace}:latest:cmd")
@@ -25,21 +34,28 @@ module RanchHand
       )
 
       if cmd == "Add command"
-        type = prompt.ask('Global, namespace, pod? (g/N/p):')
-        cmd = prompt.ask('Command:')
-
-        if %w(global Global g G).include?(type)
-          storage.set("exec:commands:global", (global_commands << cmd).uniq)
-        elsif %w(pod Pod p P).include?(type)
-          storage.set("exec:commands:#{namespace}:#{pod_name(pod)}", (pod_commands(namespace, pod) << cmd).uniq)
-        else
-          storage.set("exec:commands:#{namespace}", (namespace_commands(namespace) << cmd).uniq)
-        end
+        cmd = add_command(namespace, pod)
       end
-      
+
+      # save cmd as latest
       storage.set("exec:#{namespace}:latest:cmd", cmd)
-      
-      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
+
+      cmd
+    end
+
+    def add_command(namespace, pod)
+      type = prompt.ask('Global, namespace, pod? (g/N/p):')
+      cmd = prompt.ask('Command:')
+
+      if %w(global Global g G).include?(type)
+        storage.set("exec:commands:global", (global_commands << cmd).uniq)
+      elsif %w(pod Pod p P).include?(type)
+        storage.set("exec:commands:#{namespace}:#{pod_name(pod)}", (pod_commands(namespace, pod) << cmd).uniq)
+      else
+        storage.set("exec:commands:#{namespace}", (namespace_commands(namespace) << cmd).uniq)
+      end
+
+      cmd
     end
 
     private
@@ -61,7 +77,12 @@ module RanchHand
     end
 
     def pod_name(pod)
-      pod.split('-')[0..-3]
+      pod.split('-')[0..-3].join('-')
+    end
+
+    def pods(namespace)
+      pods_cmd = "rancher kubectl -n #{namespace} get po"
+      command(printer: :null).run(pods_cmd).out.split("\n")[1..-1].map{|l| l.split(/\s+/)[0]}
     end
 
     def storage

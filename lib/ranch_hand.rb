@@ -4,7 +4,6 @@ require 'logger'
 require 'yaml'
 
 # gems
-require 'pry' if ENV['DEBUG']
 require 'tty-command'
 require 'tty-prompt'
 

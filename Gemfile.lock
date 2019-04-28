@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ranch-hand (0.1.0)
+    ranch-hand (0.2.0)
       gli (~> 2.18)
       pry (~> 0.12.2)
       tty-command (~> 0.8.2)
