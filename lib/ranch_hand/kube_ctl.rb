@@ -1,17 +1,36 @@
 module RanchHand
   class KubeCtl
     include RanchHand::Commands
-    
-    def self.exec(namespace)
-      new.exec(namespace)
+
+    def exec(namespace, options={})
+      if options[:rm]
+        remove_command(namespace)
+      else
+        run_command(namespace)
+      end
     end
 
-    def exec(namespace)
+    def run_command(namespace)
       pod = select_pod(namespace)
-      cmd = select_command(namespace, pod)
+      type, cmd = select_command(namespace, pod)
       
-      # run cmd
       system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
+    end
+
+    def remove_command(namespace)
+      pod = select_pod(namespace)
+      type, cmd = select_command(namespace, pod, remove: true)
+
+      storage_key = case type
+      when :global
+        "exec:commands:global"
+      when :namespace
+        "exec:commands:#{namespace}"
+      when :pod
+        "exec:commands:#{namespace}:#{pod_name(pod)}"
+      end
+
+      storage.set(storage_key, storage.get(storage_key) - Array(cmd))
     end
 
     def select_pod(namespace)
@@ -25,22 +44,32 @@ module RanchHand
       pod
     end
 
-    def select_command(namespace, pod)
-      commands =  ["Add command"] + all_commands(namespace, pod)
-      cmd = prompt.enum_select('What command?', commands, per_page: 10,
-        default: commands.index(
-          storage.get("exec:#{namespace}:latest:cmd")
-        ).to_i + 1
-      )
+    def select_command(namespace, pod, options={})
+      commands =  all_commands(namespace, pod, options)
 
-      if cmd == "Add command"
-        cmd = add_command(namespace, pod)
+      ask = options[:remove] ? 'Remove command:' : 'Run command:'
+      type, cmd = prompt.enum_select(ask) do |menu|
+        menu.default commands.collect{|k,v| v}.flatten.index(
+            storage.get("exec:#{namespace}:latest:cmd")
+          ).to_i + 1
+
+        commands.each do |type, commands|
+          commands.each do |cmd|
+            menu.choice cmd, [type, cmd]
+          end
+        end
       end
 
-      # save cmd as latest
-      storage.set("exec:#{namespace}:latest:cmd", cmd)
+      unless options[:remove]
+        if cmd == "Add command"
+          type, cmd = add_command(namespace, pod)
+        end
 
-      cmd
+        # save cmd as latest
+        storage.set("exec:#{namespace}:latest:cmd", cmd)
+      end
+
+      [type, cmd]
     end
 
     def add_command(namespace, pod)
@@ -48,32 +77,44 @@ module RanchHand
       cmd = prompt.ask('Command:')
 
       if %w(global Global g G).include?(type)
-        storage.set("exec:commands:global", (global_commands << cmd).uniq)
+        type = :global
+        storage.set("exec:commands:global", (global_commands[:global] << cmd).uniq)
       elsif %w(pod Pod p P).include?(type)
-        storage.set("exec:commands:#{namespace}:#{pod_name(pod)}", (pod_commands(namespace, pod) << cmd).uniq)
+        type = :pod
+        storage.set("exec:commands:#{namespace}:#{pod_name(pod)}", (pod_commands(namespace, pod)[:pod] << cmd).uniq)
       else
-        storage.set("exec:commands:#{namespace}", (namespace_commands(namespace) << cmd).uniq)
+        type = :namespace
+        storage.set("exec:commands:#{namespace}", (namespace_commands(namespace)[:namespace] << cmd).uniq)
       end
 
-      cmd
+      [type, cmd]
     end
 
     private
 
-    def all_commands(namespace, pod)
-      global_commands | namespace_commands(namespace) | pod_commands(namespace, pod)
+    def all_commands(namespace, pod, options)
+      commands = [base_commands(options), global_commands, namespace_commands(namespace), pod_commands(namespace, pod)]
+      commands.inject({},:update)
+    end
+
+    def base_commands(options={})
+      if options[:remove]
+        {base: []}
+      else
+        {base: ["Add command"]}
+      end
     end
 
     def global_commands
-      storage.get("exec:commands:global") || []
+      {global: storage.get("exec:commands:global") || []}
     end
 
     def namespace_commands(namespace)
-      storage.get("exec:commands:#{namespace}") || []
+      {namespace: storage.get("exec:commands:#{namespace}") || []}
     end
 
     def pod_commands(namespace, pod)
-      storage.get("exec:commands:#{namespace}:#{pod_name(pod)}") || []
+      {pod: storage.get("exec:commands:#{namespace}:#{pod_name(pod)}") || []}
     end
 
     def pod_name(pod)

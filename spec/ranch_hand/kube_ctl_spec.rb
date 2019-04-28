@@ -13,12 +13,60 @@ RSpec.describe RanchHand::KubeCtl do
     )
   }
 
-  it "#exec calls the system command correctly" do
+  describe "#exec" do
+    it "calls #run_command by default" do
+      expect(kube_ctl).to receive(:run_command)
+      kube_ctl.exec('test')
+    end
+
+    it "calls #remove_command if passed :rm option" do
+      expect(kube_ctl).to receive(:remove_command)
+      kube_ctl.exec('test', rm: true)
+    end
+  end
+
+  it "#run_command calls the system command correctly" do
     allow(kube_ctl).to receive(:select_pod).and_return('first-pod-1234567890-12345')
-    allow(kube_ctl).to receive(:select_command).and_return('test-command')
+    allow(kube_ctl).to receive(:select_command).and_return([:global, 'test-command'])
 
     expect_any_instance_of(Kernel).to receive(:system).with("rancher kubectl -n test exec -it first-pod-1234567890-12345 -- test-command")
-    kube_ctl.exec('test')
+    kube_ctl.run_command('test')
+  end
+
+  describe "#remove_command" do
+    before(:each) do
+      allow(kube_ctl).to receive(:select_pod).and_return('first-pod-1234567890-12345')
+    end
+
+    it "removes the selected :global command" do
+      kube_ctl.send(:storage).set("exec:commands:global", ['test-command-A', 'test-command-B'])
+      allow(kube_ctl).to receive(:select_command).and_return([:global, 'test-command-A'])
+
+      kube_ctl.remove_command('test')
+      expect(
+        kube_ctl.send(:storage).get("exec:commands:global")
+      ).to eq(['test-command-B'])
+    end
+
+    it "removes the selected :namespace command" do
+      kube_ctl.send(:storage).set("exec:commands:test", ['test-command-A', 'test-command-B'])
+      allow(kube_ctl).to receive(:select_command).and_return([:namespace, 'test-command-A'])
+
+      kube_ctl.remove_command('test')
+      expect(
+        kube_ctl.send(:storage).get("exec:commands:test")
+      ).to eq(['test-command-B'])
+    end
+
+    it "removes the selected :pod command" do
+      kube_ctl.send(:storage).set("exec:commands:test:first-pod", ['test-command-A', 'test-command-B'])
+      allow(kube_ctl).to receive(:select_command).and_return([:pod, 'test-command-A'])
+
+      kube_ctl.remove_command('test')
+      expect(
+        kube_ctl.send(:storage).get("exec:commands:test:first-pod")
+      ).to eq(['test-command-B'])
+    end
   end
 
   it "#select_pod saves selected pod to the latest" do
@@ -33,8 +81,8 @@ RSpec.describe RanchHand::KubeCtl do
 
   describe "#select_command" do
     it "saves the selected command to the latest" do
-      allow(kube_ctl).to receive(:all_commands).and_return(['test-command'])
-      allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return('test-command')
+      allow(kube_ctl).to receive(:all_commands).and_return({global: ['test-command']})
+      allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return([:global, 'test-command'])
 
       kube_ctl.select_command('test', 'first-pod-1234567890-12345')
       expect(
@@ -43,8 +91,8 @@ RSpec.describe RanchHand::KubeCtl do
     end
 
     it "calls #add_command when 'Add command' is selected" do
-      allow(kube_ctl).to receive(:all_commands).and_return(['test-command'])
-      allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return('Add command')
+      allow(kube_ctl).to receive(:all_commands).and_return({global: ['test-command']})
+      allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return([:base, 'Add command'])
 
       expect(kube_ctl).to receive(:add_command)
       kube_ctl.select_command('test', 'first-pod-1234567890-12345')
