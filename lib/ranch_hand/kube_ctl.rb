@@ -5,16 +5,22 @@ module RanchHand
     def exec(namespace, options={})
       if options[:remove]
         remove_command(namespace)
+      elsif options[:repeat]
+        repeat_command(namespace)
       else
         choose_command(namespace)
       end
+    end
+
+    def run_command(namespace, pod, cmd)
+      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
     end
 
     def choose_command(namespace)
       pod = select_pod(namespace)
       type, cmd = select_command(namespace, pod)
       
-      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
+      run_command(namespace, pod, cmd)
     end
 
     def remove_command(namespace)
@@ -31,6 +37,14 @@ module RanchHand
       end
 
       storage.set(storage_key, storage.get(storage_key) - Array(cmd))
+    end
+
+    def repeat_command(namespace)
+      run_command(
+        namespace,
+        storage.get("exec:#{namespace}:latest:pod"),
+        storage.get("exec:#{namespace}:latest:cmd")
+      )
     end
 
     def select_pod(namespace)

@@ -26,6 +26,7 @@ module RanchHandCLI
   arg_name 'namespace'
   command :exec do |c|
     c.switch [:rm, :remove], negatable: false
+    c.swtich [:r, :repeat], negatable: false
     c.action do |global_options, options, args|
       RanchHand::KubeCtl.new.exec(args[0], options)
     end

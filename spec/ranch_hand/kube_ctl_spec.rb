@@ -23,6 +23,11 @@ RSpec.describe RanchHand::KubeCtl do
       expect(kube_ctl).to receive(:remove_command)
       kube_ctl.exec('test', remove: true)
     end
+
+    it "calls #repeat_command if passed :repeat option" do
+      expect(kube_ctl).to receive(:repeat_command)
+      kube_ctl.exec('test', repeat: true)
+    end
   end
 
   it "#choose_command calls the system command correctly" do
@@ -67,6 +72,15 @@ RSpec.describe RanchHand::KubeCtl do
         kube_ctl.send(:storage).get("exec:commands:test:first-pod")
       ).to eq(['test-command-B'])
     end
+  end
+
+  it "#repeat_command runs previously used command" do
+    namespace, pod, cmd = %w(test first-pod-1234567890-12345 test-command)
+    kube_ctl.send(:storage).set("exec:#{namespace}:latest:pod", pod)
+    kube_ctl.send(:storage).set("exec:#{namespace}:latest:cmd", cmd)
+
+    expect_any_instance_of(Kernel).to receive(:system).with("rancher kubectl -n test exec -it first-pod-1234567890-12345 -- test-command")
+    kube_ctl.repeat_command(namespace)
   end
 
   it "#select_pod saves selected pod to the latest" do
