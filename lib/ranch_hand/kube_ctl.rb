@@ -3,14 +3,14 @@ module RanchHand
     include RanchHand::Commands
 
     def exec(namespace, options={})
-      if options[:rm]
+      if options[:remove]
         remove_command(namespace)
       else
-        run_command(namespace)
+        choose_command(namespace)
       end
     end
 
-    def run_command(namespace)
+    def choose_command(namespace)
       pod = select_pod(namespace)
       type, cmd = select_command(namespace, pod)
       

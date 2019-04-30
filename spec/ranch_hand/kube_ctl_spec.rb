@@ -14,23 +14,23 @@ RSpec.describe RanchHand::KubeCtl do
   }
 
   describe "#exec" do
-    it "calls #run_command by default" do
-      expect(kube_ctl).to receive(:run_command)
+    it "calls #choose_command by default" do
+      expect(kube_ctl).to receive(:choose_command)
       kube_ctl.exec('test')
     end
 
-    it "calls #remove_command if passed :rm option" do
+    it "calls #remove_command if passed :remove option" do
       expect(kube_ctl).to receive(:remove_command)
-      kube_ctl.exec('test', rm: true)
+      kube_ctl.exec('test', remove: true)
     end
   end
 
-  it "#run_command calls the system command correctly" do
+  it "#choose_command calls the system command correctly" do
     allow(kube_ctl).to receive(:select_pod).and_return('first-pod-1234567890-12345')
     allow(kube_ctl).to receive(:select_command).and_return([:global, 'test-command'])
 
     expect_any_instance_of(Kernel).to receive(:system).with("rancher kubectl -n test exec -it first-pod-1234567890-12345 -- test-command")
-    kube_ctl.run_command('test')
+    kube_ctl.choose_command('test')
   end
 
   describe "#remove_command" do
