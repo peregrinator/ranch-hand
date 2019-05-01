@@ -57,8 +57,11 @@ module RanchHand
           pods = pods.select{|p| p.match?(/#{options[:filter]}/)} 
         end
       end
-
       prompt.error("No pods matching filter: '#{options[:filter]}'") and exit if pods.empty?
+
+      if options[:group]
+        pods = pods.group_by{|p| pod_name(p)}.map{|name, pods| pods.first}
+      end
 
       pod = prompt.enum_select("Which pod?", pods, per_page: 10,
         default: pods.index(

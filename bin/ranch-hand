@@ -2,7 +2,8 @@
 module RanchHandCLI
   require 'gli'
   require 'ranch_hand'
-
+  require 'pry'
+  
   include GLI::App
   # our cli is wrapped in a module (to not pollute the global namespace with GLI methods),
   # so we need to extend here for things to work
@@ -25,6 +26,7 @@ module RanchHandCLI
   desc 'Execs into a running container'
   arg 'namespace'
   command :exec do |c|
+    c.switch [:g, :group], negatable: false, desc: "Group pods returned so that there is only one from each deployment."
     c.switch [:rm, :remove], negatable: false
     c.switch [:r, :repeat], negatable: false
     c.flag [:f, :filter], desc: "Filter pods returned to those that contain the string provided (negative matches supported). Examples: '-f nginx', '-f -apache'"

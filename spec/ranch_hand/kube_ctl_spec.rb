@@ -106,34 +106,50 @@ RSpec.describe RanchHand::KubeCtl do
       ).to eq(k8s_pods.first)
     end
 
-    it "filters pods correctly when passed a filter string" do
-      # make a selection
-      prompt.input << "1\n"
-      prompt.input.rewind
+    context "filter flag (-f/--filter)" do
+      it "limits pods returned to those matching the filter" do
+        # make a selection
+        prompt.input << "1\n"
+        prompt.input.rewind
 
-      kube_ctl.select_pod('test', {filter: "nginx"})
-      
-      expect(
-        prompt.output.string.include?('nginx')
-      ).to be(true)
-      expect(
-        prompt.output.string.include?('apache')
-      ).to be(false)
-    end
+        kube_ctl.select_pod('test', {filter: "nginx"})
+        
+        expect(
+          prompt.output.string.split("Choose 1-").first.scan(/nginx/).size
+        ).to eq(3)
+        expect(
+          prompt.output.string.include?('apache')
+        ).to be(false)
+      end
     
-    it "filters pods correctly when passed a negative filter string" do
-      # make a selection
-      prompt.input << "1\n"
-      prompt.input.rewind
+      it "limits pods returned to those not matching the filter when passed a negative filter string" do
+        # make a selection
+        prompt.input << "1\n"
+        prompt.input.rewind
 
-      kube_ctl.select_pod('test', {filter: "-nginx"})
-      
-      expect(
-        prompt.output.string.include?('nginx')
-      ).to be(false)
-      expect(
-        prompt.output.string.include?('apache')
-      ).to be(true)
+        kube_ctl.select_pod('test', {filter: "-nginx"})
+        
+        expect(
+          prompt.output.string.include?('nginx')
+        ).to be(false)
+        expect(
+          prompt.output.string.include?('apache')
+        ).to be(true)
+      end
+    end
+
+    context "group switch (-g/--group)" do
+      it "groups pods such that there is only one occurance of each" do
+        # make a selection
+        prompt.input << "1\n"
+        prompt.input.rewind
+
+        kube_ctl.select_pod('test', {group: true})
+
+        expect(
+          prompt.output.string.split("Choose 1-").first.scan(/nginx/).size
+        ).to eq(1)
+      end
     end
   end
 
