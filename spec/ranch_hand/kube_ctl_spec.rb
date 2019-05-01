@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 RSpec.describe RanchHand::KubeCtl do
   before(:each) do
     stub_const("RanchHand::STORE_FILE", File.join('tmp/store.yml'))
@@ -7,9 +9,11 @@ RSpec.describe RanchHand::KubeCtl do
   let(:kube_ctl) { RanchHand::KubeCtl.new }
   let(:k8s_pods) {
     %w(
-      first-pod-1234567890-12345
-      second-pod-1234567890-12345
-      third-pod-1234567890-12345
+      apache-1234567890-12345
+      haproxy-1234567890-12345
+      nginx-1234567890-12345
+      nginx-1234567890-67890
+      nginx-1234567890-54321
     )
   }
 
@@ -83,14 +87,54 @@ RSpec.describe RanchHand::KubeCtl do
     kube_ctl.repeat_command(namespace)
   end
 
-  it "#select_pod saves selected pod to the latest" do
-    allow(kube_ctl).to receive(:pods).and_return(k8s_pods)
-    allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return(k8s_pods.first)
+  describe "#select_pod" do
+    let(:prompt) { TTY::TestPrompt.new }
+    before(:each) do
+      allow(kube_ctl).to receive(:prompt).and_return(prompt)
+      allow(kube_ctl).to receive(:pods).and_return(k8s_pods)
+    end
 
-    kube_ctl.select_pod('test')
-    expect(
-      kube_ctl.send(:storage).get("exec:test:latest:pod")
-    ).to eq(k8s_pods.first)
+    it "saves selected pod to the latest" do  
+      # make a selection
+      prompt.input << "1\n"
+      prompt.input.rewind
+
+      kube_ctl.select_pod('test')
+      
+      expect(
+        kube_ctl.send(:storage).get("exec:test:latest:pod")
+      ).to eq(k8s_pods.first)
+    end
+
+    it "filters pods correctly when passed a filter string" do
+      # make a selection
+      prompt.input << "1\n"
+      prompt.input.rewind
+
+      kube_ctl.select_pod('test', {filter: "nginx"})
+      
+      expect(
+        prompt.output.string.include?('nginx')
+      ).to be(true)
+      expect(
+        prompt.output.string.include?('apache')
+      ).to be(false)
+    end
+    
+    it "filters pods correctly when passed a negative filter string" do
+      # make a selection
+      prompt.input << "1\n"
+      prompt.input.rewind
+
+      kube_ctl.select_pod('test', {filter: "-nginx"})
+      
+      expect(
+        prompt.output.string.include?('nginx')
+      ).to be(false)
+      expect(
+        prompt.output.string.include?('apache')
+      ).to be(true)
+    end
   end
 
   describe "#select_command" do

@@ -27,6 +27,8 @@ module RanchHandCLI
   command :exec do |c|
     c.switch [:rm, :remove], negatable: false
     c.switch [:r, :repeat], negatable: false
+    c.flag [:f, :filter], desc: "Filter pods returned to those that contain the string provided (negative matches supported). Examples: '-f nginx', '-f -apache'"
+
     c.action do |global_options, options, args|
       RanchHand::KubeCtl.new.exec(args[0], options)
     end

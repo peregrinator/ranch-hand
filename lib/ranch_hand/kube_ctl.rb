@@ -8,7 +8,7 @@ module RanchHand
       elsif options[:repeat]
         repeat_command(namespace)
       else
-        choose_command(namespace)
+        choose_command(namespace, options)
       end
     end
 
@@ -16,8 +16,8 @@ module RanchHand
       system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
     end
 
-    def choose_command(namespace)
-      pod = select_pod(namespace)
+    def choose_command(namespace, options={})
+      pod = select_pod(namespace, options)
       type, cmd = select_command(namespace, pod)
       
       run_command(namespace, pod, cmd)
@@ -47,8 +47,19 @@ module RanchHand
       )
     end
 
-    def select_pod(namespace)
+    def select_pod(namespace, options={})
       pods = pods(namespace)
+
+      if options[:filter]
+        if options[:filter].start_with?('-')
+          pods = pods.reject{|p| p.match?(/#{options[:filter][1..-1]}/)} 
+        else
+          pods = pods.select{|p| p.match?(/#{options[:filter]}/)} 
+        end
+      end
+
+      prompt.error("No pods matching filter: '#{options[:filter]}'") and exit if pods.empty?
+
       pod = prompt.enum_select("Which pod?", pods, per_page: 10,
         default: pods.index(
           storage.get("exec:#{namespace}:latest:pod")
