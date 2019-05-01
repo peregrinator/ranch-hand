@@ -23,7 +23,7 @@ module RanchHandCLI
   end
 
   desc 'Execs into a running container'
-  arg_name 'namespace'
+  arg 'namespace'
   command :exec do |c|
     c.switch [:rm, :remove], negatable: false
     c.swtich [:r, :repeat], negatable: false
