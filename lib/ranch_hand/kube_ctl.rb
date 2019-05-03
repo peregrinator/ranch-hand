@@ -66,11 +66,22 @@ module RanchHand
         pods = pods.group_by{|p| pod_name(p)}.map{|name, pods| pods.first}
       end
 
-      pod = prompt.enum_select("Which pod?", pods, per_page: 10,
-        default: pods.index(
-          storage.get("exec:#{namespace}:latest:pod")
-        ).to_i + 1
-      )
+      if options[:pod]
+        if options[:group]
+          pod = pods.select{|p| p.match?(/#{options[:pod]}/)}.first
+        else
+          pod = pods.select{|p| options[:pod] == p}.first
+        end
+
+        prompt.error("No pods match: '#{options[:pod]}'. Did you mean to use the group (-g) switch?") and exit unless pod
+      else
+        pod = prompt.enum_select("Which pod?", pods, per_page: 10,
+          default: pods.index(
+            storage.get("exec:#{namespace}:latest:pod")
+          ).to_i + 1
+        )
+      end
+
       storage.set("exec:#{namespace}:latest:pod", pod)
       pod
     end

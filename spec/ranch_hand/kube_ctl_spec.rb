@@ -159,6 +159,37 @@ RSpec.describe RanchHand::KubeCtl do
         ).to eq(1)
       end
     end
+
+    context "pod flag (-p/--pod)" do
+      context "without group switch" do
+        it "returns the matching pod when there is a full pod identifier provided" do
+          namespace, pod = 'test', 'nginx-1234567890-67890'
+
+          expect(
+            kube_ctl.select_pod(namespace, {pod: pod})
+          ).to eq(pod)
+        end
+
+        it "does not return the matching pod when there is a full pod identifier provided" do
+          namespace, pod = 'test', 'nginx'
+
+          expect(prompt).to receive(:error).with("No pods match: '#{pod}'. Did you mean to use the group (-g) switch?")
+          expect(
+            kube_ctl.select_pod(namespace, {pod: pod})
+          ).to eq(nil)
+        end
+      end
+
+      context "with group switch" do
+        it "returns the first matching pod when only a partial pod identifier is provided" do
+          namespace, pod = 'test', 'nginx'
+
+          expect(
+            kube_ctl.select_pod(namespace, {pod: pod, group: true})
+          ).to eq('nginx-1234567890-12345')
+        end
+      end
+    end
   end
 
   describe "#select_command" do
