@@ -23,14 +23,22 @@ RSpec.describe RanchHand::KubeCtl do
       kube_ctl.exec('test')
     end
 
-    it "calls #remove_command if passed :remove option" do
+    it "calls #remove_command if passed :remove switch" do
       expect(kube_ctl).to receive(:remove_command)
       kube_ctl.exec('test', remove: true)
     end
 
-    it "calls #repeat_command if passed :repeat option" do
+    it "calls #repeat_command if passed :repeat switch" do
       expect(kube_ctl).to receive(:repeat_command)
       kube_ctl.exec('test', repeat: true)
+    end
+
+    it "requests pod and runs command passed via :command flag" do
+      namespace, pod, cmd = 'ecfr', 'first-pod-1234567890-12345', 'test-command'
+      expect(kube_ctl).to receive(:select_pod).and_return(pod)
+      expect(kube_ctl).to receive(:run_command).with(namespace, pod, cmd)
+
+      kube_ctl.exec(namespace, command: cmd)
     end
   end
 
@@ -171,6 +179,14 @@ RSpec.describe RanchHand::KubeCtl do
       expect(kube_ctl).to receive(:add_command)
       kube_ctl.select_command('test', 'first-pod-1234567890-12345')
     end
+
+    it "calls #run_once when 'Run once' is selected" do
+      allow(kube_ctl).to receive(:all_commands).and_return({global: ['test-command']})
+      allow_any_instance_of(TTY::Prompt).to receive(:enum_select).and_return([:base, 'Run once'])
+
+      expect(kube_ctl).to receive(:run_once)
+      kube_ctl.select_command('test', 'first-pod-1234567890-12345')
+    end
   end
 
   describe "#add_command" do
@@ -211,5 +227,13 @@ RSpec.describe RanchHand::KubeCtl do
         ).to eq(['test-command'])
       end
     end
+  end
+
+  it "#run_once returns the provided command" do
+    expect_any_instance_of(TTY::Prompt).to receive(:ask).with('Command:').and_return('test-command')
+
+    expect(
+      kube_ctl.run_once('test', 'first-pod-1234567890-12345')
+    ).to eq('test-command')
   end
 end

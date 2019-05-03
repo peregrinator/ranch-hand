@@ -7,6 +7,9 @@ module RanchHand
         remove_command(namespace)
       elsif options[:repeat]
         repeat_command(namespace)
+      elsif options[:command]
+        pod = select_pod(namespace, options)
+        run_command(namespace, pod, options[:command])
       else
         choose_command(namespace, options)
       end
@@ -91,6 +94,8 @@ module RanchHand
       unless options[:remove]
         if cmd == "Add command"
           type, cmd = add_command(namespace, pod)
+        elsif cmd == "Run once"
+          type, cmd = nil, run_once(namespace, pod)
         end
 
         # save cmd as latest
@@ -118,6 +123,10 @@ module RanchHand
       [type, cmd]
     end
 
+    def run_once(namespace, pod)
+      prompt.ask('Command:')
+    end
+
     private
 
     def all_commands(namespace, pod, options)
@@ -129,7 +138,7 @@ module RanchHand
       if options[:remove]
         {base: []}
       else
-        {base: ["Add command"]}
+        {base: ["Add command", "Run once"]}
       end
     end
 

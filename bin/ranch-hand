@@ -29,6 +29,8 @@ module RanchHandCLI
     c.switch [:g, :group], negatable: false, desc: "Group pods returned so that there is only one from each deployment."
     c.switch [:rm, :remove], negatable: false, desc: "Used to indicated that you want to remove a previously saved command."
     c.switch [:r, :repeat], negatable: false, desc: "Repeat the last command ran (against the same pod)."
+    
+    c.flag [:c, :command], desc: "Command to run once (not permanently stored)"
     c.flag [:f, :filter], desc: "Filter pods returned to those that contain the string provided (negative matches supported). Examples: '-f nginx', '-f -apache'"
 
     c.action do |global_options, options, args|
