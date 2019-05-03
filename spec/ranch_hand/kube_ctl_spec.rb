@@ -20,25 +20,25 @@ RSpec.describe RanchHand::KubeCtl do
   describe "#exec" do
     it "calls #choose_command by default" do
       expect(kube_ctl).to receive(:choose_command)
-      kube_ctl.exec('test')
+      kube_ctl.exec(namespace: 'test')
     end
 
     it "calls #remove_command if passed :remove switch" do
       expect(kube_ctl).to receive(:remove_command)
-      kube_ctl.exec('test', remove: true)
+      kube_ctl.exec(namespace: 'test', remove: true)
     end
 
     it "calls #repeat_command if passed :repeat switch" do
       expect(kube_ctl).to receive(:repeat_command)
-      kube_ctl.exec('test', repeat: true)
+      kube_ctl.exec(namespace: 'test', repeat: true)
     end
 
     it "requests pod and runs command passed via :command flag" do
-      namespace, pod, cmd = 'ecfr', 'first-pod-1234567890-12345', 'test-command'
+      namespace, pod, cmd = 'test', 'first-pod-1234567890-12345', 'test-command'
       expect(kube_ctl).to receive(:select_pod).and_return(pod)
       expect(kube_ctl).to receive(:run_command).with(namespace, pod, cmd)
 
-      kube_ctl.exec(namespace, command: cmd)
+      kube_ctl.exec(namespace: namespace, command: cmd)
     end
   end
 

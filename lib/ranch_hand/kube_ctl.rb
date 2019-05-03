@@ -2,7 +2,9 @@ module RanchHand
   class KubeCtl
     include RanchHand::Commands
 
-    def exec(namespace, options={})
+    def exec(options={})
+      namespace = options.delete(:namespace)
+      
       if options[:remove]
         remove_command(namespace)
       elsif options[:repeat]
