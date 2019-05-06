@@ -1,5 +1,7 @@
 # RanchHand
 
+[![Gem Version](https://badge.fury.io/rb/ranch-hand.svg)](https://badge.fury.io/rb/ranch-hand)
+
 Provides a simple interface on top the Rancher CLI and the Kubectl commands to make running commands in pods easier.
 This is particularily useful when using Kubernetes in a development environment.
 
