@@ -3,6 +3,8 @@ module RanchHand
     include RanchHand::Commands
 
     def exec(options={})
+      # options = project_config.merge(options)
+
       namespace = options.delete(:namespace)
       
       if options[:remove]
@@ -179,5 +181,10 @@ module RanchHand
     def storage
       @storage ||= RanchHand::Storage.new
     end
+
+    # def project_config
+    #   project_config_file = File.join(Dir.pwd, ".ranch-hand")
+    #   YAML.load_file(project_config_file) || {}
+    # end
   end
 end

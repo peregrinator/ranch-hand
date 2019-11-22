@@ -10,6 +10,7 @@ require 'tty-prompt'
 # our files
 require 'ranch_hand/base.rb'
 require 'ranch_hand/commands.rb'
+require 'ranch_hand/config.rb'
 require 'ranch_hand/constants.rb'
 require 'ranch_hand/kube_ctl.rb'
 require 'ranch_hand/logger.rb'

@@ -23,16 +23,25 @@ module RanchHandCLI
     end
   end
 
+  desc 'Initializes ranch hand for project'
+  command :init do |c|
+    c.action do |global_options, command_options, args|
+      RanchHand::Base.init
+    end
+  end
+
   desc 'Execs into a running container'
   command :exec do |c|
-    c.switch [:g, :group], negatable: false, desc: "Group pods returned so that there is only one from each deployment."
+    config = RanchHand::Config.load
+
+    c.switch [:g, :group], negatable: true, default_value: config[:group] || false, desc: "Group pods returned so that there is only one from each deployment, --no-group can be used to override project config as needed."
     c.switch [:rm, :remove], negatable: false, desc: "Used to indicated that you want to remove a previously saved command."
     c.switch [:r, :repeat], negatable: false, desc: "Repeat the last command ran (against the same pod)."
     
     c.flag [:c, :command], desc: "Command to run once (not permanently stored)"
     c.flag [:f, :filter], desc: "Filter pods returned to those that contain the string provided (negative matches supported). Examples: '-f nginx', '-f -apache'"
-    c.flag [:n, :namespace], required: true, desc: "Namespace against which to retreive pods and run command"
-    c.flag [:p, :pod], desc: "Run command in a specific pod. If used with -g only the pod name can be specified and the command will be run against the first in the group"
+    c.flag [:n, :namespace], required: true, default_value: config[:namespace], desc: "Namespace against which to retreive pods and run command"
+    c.flag [:p, :pod], default_value: config[:pod], desc: "Run command in a specific pod. If used with -g only the pod name can be specified and the command will be run against the first in the group"
 
     c.action do |global_options, command_options, args|
       RanchHand::KubeCtl.new.exec(command_options)

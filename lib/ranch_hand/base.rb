@@ -6,5 +6,11 @@ module RanchHand
       File.new(RanchHand::STORE_FILE, 'w+', 0640)
       RanchHand::Logger.info("complete")
     end
+
+    def self.init
+      RanchHand::Logger.info("initializing ranch-hand for project")
+      RanchHand::Config.create
+      RanchHand::Logger.info("initialization complete")
+    end
   end
 end

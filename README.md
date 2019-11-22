@@ -23,6 +23,17 @@ Or install it yourself as:
 
     $ gem install ranch-hand
 
+## Setup
+
+Once ranch-hand is installed, run `ranch-hand setup` from the command line. This will the necessary files in a `~/.ranch-hand`.
+
+#### Project setup
+
+Project setup is optional. You can create a set of default values for certain flags by running `ranch-hand init` in any directory. When ranch-hand is run from a directory it will use the values in a `.ranch-hand` file if it is present.
+
+Normally you might run the following command: `ranch-hand -n my-namespace -g -p my-project -c /bin/bash`
+Using `ranch-hand init` you can set the namespace, grouping flag and pod name as defaults, instead allowing you to just run: `ranch-hand -c /bin/bash`.
+
 ## Usage
 
 RanchHand makes use of the [GLI](https://github.com/davetron5000/gli) (Git Like Interface) gem to create a CLI with features similar to the Git CLI. Run `ranch-hand help` or `ranch-hand command help` for usage information.
