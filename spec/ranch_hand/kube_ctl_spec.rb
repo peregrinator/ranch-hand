@@ -96,7 +96,7 @@ RSpec.describe RanchHand::KubeCtl do
   end
 
   describe "#select_pod" do
-    let(:prompt) { TTY::TestPrompt.new }
+    let(:prompt) { TTY::Prompt::Test.new }
     before(:each) do
       allow(kube_ctl).to receive(:prompt).and_return(prompt)
       allow(kube_ctl).to receive(:pods).and_return(k8s_pods)
@@ -221,7 +221,7 @@ RSpec.describe RanchHand::KubeCtl do
   end
 
   describe "#add_command" do
-    subject(:prompt) { TTY::TestPrompt.new }
+    subject(:prompt) {TTY::Prompt::Test.new }
 
     it "adds a global command" do
       %w(Global global g G).each do |choice|

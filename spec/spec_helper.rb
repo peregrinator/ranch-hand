@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "ranch_hand"
 require 'pry'
+require "tty/prompt/test"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
