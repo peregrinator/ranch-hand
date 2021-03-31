@@ -44,7 +44,7 @@ module RanchHandCLI
     c.flag [:p, :pod], default_value: config[:pod], desc: "Run command in a specific pod. If used with -g only the pod name can be specified and the command will be run against the first in the group"
 
     c.action do |global_options, command_options, args|
-      RanchHand::KubeCtl.new.exec(command_options)
+      RanchHand::KubeCtl.new.exec(**command_options)
     end
   end
 

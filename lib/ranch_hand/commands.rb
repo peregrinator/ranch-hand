@@ -3,7 +3,7 @@ module RanchHand
     private
 
     def command(opts={})
-      TTY::Command.new(opts)
+      TTY::Command.new(**opts)
     end
 
     def prompt

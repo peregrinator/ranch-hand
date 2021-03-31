@@ -2,7 +2,8 @@ module RanchHand
   class KubeCtl
     include RanchHand::Commands
 
-    def exec(options={})
+    def exec(**options)
+      options ||= {}
       # options = project_config.merge(options)
 
       namespace = options.delete(:namespace)
