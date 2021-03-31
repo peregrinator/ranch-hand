@@ -5,7 +5,7 @@
 Provides a simple interface on top the Rancher CLI and the Kubectl commands to make running commands in pods easier.
 This is particularily useful when using Kubernetes in a development environment.
 
-![ranch-hand demo](https://github.com/peregrinator/ranch-hand/raw/master/doc/ranch-hand-demo.gif "Ranch-hand Demo")
+![ranch-hand demo](https://github.com/peregrinator/ranch-hand/raw/main/doc/ranch-hand-demo.gif "Ranch-hand Demo")
 
 ## Installation
 
