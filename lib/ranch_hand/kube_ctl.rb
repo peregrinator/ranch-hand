@@ -176,7 +176,9 @@ module RanchHand
 
     def pods(namespace)
       pods_cmd = "rancher kubectl -n #{namespace} get po"
-      command(printer: :null).run(pods_cmd).out.split("\n")[1..-1].map{|l| l.split(/\s+/)[0]}
+      pods = command(printer: :null).run(pods_cmd).out.split("\n")[1..-1]&.map{|l| l.split(/\s+/)[0]}
+
+      pods || []
     end
 
     def storage
