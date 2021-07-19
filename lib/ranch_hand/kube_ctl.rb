@@ -2,26 +2,25 @@ module RanchHand
   class KubeCtl
     include RanchHand::Commands
 
-    def exec(**options)
-      options ||= {}
-      # options = project_config.merge(options)
+    def exec(args: [], cmd_options: {})
+      args = Array(args)
 
-      namespace = options.delete(:namespace)
+      namespace = cmd_options.delete(:namespace)
       
-      if options[:remove]
+      if cmd_options[:remove]
         remove_command(namespace)
-      elsif options[:repeat]
+      elsif cmd_options[:repeat]
         repeat_command(namespace)
-      elsif options[:command]
-        pod = select_pod(namespace, options)
-        run_command(namespace, pod, options[:command])
+      elsif cmd_options[:command]
+        pod = select_pod(namespace, cmd_options)
+        run_command(namespace, pod, cmd_options[:command], args)
       else
-        choose_command(namespace, options)
+        choose_command(namespace, cmd_options)
       end
     end
 
-    def run_command(namespace, pod, cmd)
-      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd}")
+    def run_command(namespace, pod, cmd, args=[])
+      system("rancher kubectl -n #{namespace} exec -it #{pod} -- #{cmd} #{args.join(' ')}".strip)
     end
 
     def choose_command(namespace, options={})

@@ -14,7 +14,7 @@ module RanchHandCLI
   version RanchHand::VERSION
 
   subcommand_option_handling :normal
-  arguments :strict
+  arguments :loose
 
   desc 'Sets up ranch hand'
   command :setup do |c|
@@ -44,7 +44,7 @@ module RanchHandCLI
     c.flag [:p, :pod], default_value: config[:pod], desc: "Run command in a specific pod. If used with -g only the pod name can be specified and the command will be run against the first in the group"
 
     c.action do |global_options, command_options, args|
-      RanchHand::KubeCtl.new.exec(**command_options)
+      RanchHand::KubeCtl.new.exec(args: args, cmd_options: command_options)
     end
   end
 
