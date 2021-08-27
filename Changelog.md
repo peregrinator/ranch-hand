@@ -1,3 +1,7 @@
+### 0.7.1
+Add Oh My Zsh plugin to provide shortcuts, see files/ranch-hand.plugin.zsh
+Add new `ranch-hand ohmyzsh` command to install plugins
+
 ### 0.7.0
 #### Features
 Add support for command arguments. Commands that use arguments no longer need to be wrapped in a string in order to be passed properly. This provides a better interface for editor plugins that automatically append arguments to the end of a custom command.
