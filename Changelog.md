@@ -1,3 +1,7 @@
+### 0.8.0
+- Add ability to specify a command prefix that will be added to all commands run via `ranch-hand exec` by default (peregrinator/ranch-hand/issues/8)
+- Add ability to edit the project config file via new command `ranch-hand update_config` (peregrinator/ranch-hand/issues/9)
+- Add ohmyzsh aliases for new commands
 ### 0.7.1
 Add Oh My Zsh plugin to provide shortcuts, see files/ranch-hand.plugin.zsh
 Add new `ranch-hand ohmyzsh` command to install plugins
