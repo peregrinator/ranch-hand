@@ -31,8 +31,6 @@ module RanchHand
     end
 
     def self.save(config)
-      # File.new(project_config_path, 'w+', 0640)
-
       File.open(project_config_path, 'w', 0640) do |f|
         f.write(config.to_yaml)
       end
