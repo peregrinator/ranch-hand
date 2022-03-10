@@ -6,7 +6,7 @@ module RanchHand
       args = Array(args)
 
       namespace = cmd_options.delete(:namespace)
-      
+
       if cmd_options[:remove]
         remove_command(namespace)
       elsif cmd_options[:repeat]
@@ -26,7 +26,7 @@ module RanchHand
     def choose_command(namespace, options={})
       pod = select_pod(namespace, options)
       type, cmd = select_command(namespace, pod)
-      
+
       run_command(namespace, pod, cmd)
     end
 
@@ -59,9 +59,9 @@ module RanchHand
 
       if options[:filter]
         if options[:filter].start_with?('-')
-          pods = pods.reject{|p| p.match?(/#{options[:filter][1..-1]}/)} 
+          pods = pods.reject{|p| p.match?(/#{options[:filter][1..-1]}/)}
         else
-          pods = pods.select{|p| p.match?(/#{options[:filter]}/)} 
+          pods = pods.select{|p| p.match?(/#{options[:filter]}/)}
         end
       end
       prompt.error("No pods matching filter: '#{options[:filter]}'") and exit if pods.empty?
