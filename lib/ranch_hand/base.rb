@@ -34,5 +34,11 @@ module RanchHand
       RanchHand::Logger.info("installation complete")
       RanchHand::Logger.info("Don't forget to add 'ranch-hand' to your plugins in ~/.zshrc -- e.g. plugins=(ranch-hand) -- and then 'source ~/.zshrc'")
     end
+
+    def self.update_config
+      RanchHand::Logger.info("updating ranch-hand config for project")
+      RanchHand::Config.update
+      RanchHand::Logger.info("update complete")
+    end
   end
 end

@@ -11,7 +11,7 @@ module RanchHand
         remove_command(namespace)
       elsif cmd_options[:repeat]
         repeat_command(namespace)
-      elsif cmd_options[:command]
+      elsif cmd_options[:command] || (!cmd_options[:prefer_ui] && cmd_options[:command_prefix])
         pod = select_pod(namespace, cmd_options)
         run_command(namespace, pod, generate_command(cmd_options), args)
       else

@@ -30,10 +30,17 @@ module RanchHandCLI
     end
   end
 
-  desc 'Initializes ranch hand for project'
+  desc 'Initializes ranch hand for current project'
   command :init do |c|
     c.action do |global_options, command_options, args|
       RanchHand::Base.init
+    end
+  end
+
+  desc 'Updates ranch hand config for current project'
+  command :update_config do |c|
+    c.action do |global_options, command_options, args|
+      RanchHand::Base.update_config
     end
   end
 
@@ -53,6 +60,7 @@ module RanchHandCLI
 
     default_command_options = {
       command_prefix: config[:command_prefix],
+      prefer_ui: config[:prefer_ui]
     }
 
     c.action do |global_options, command_options, args|
