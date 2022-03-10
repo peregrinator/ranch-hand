@@ -44,14 +44,19 @@ module RanchHandCLI
     c.switch [:g, :group], negatable: true, default_value: config[:group] || false, desc: "Group pods returned so that there is only one from each deployment, --no-group can be used to override project config as needed."
     c.switch [:rm, :remove], negatable: false, desc: "Used to indicated that you want to remove a previously saved command."
     c.switch [:r, :repeat], negatable: false, desc: "Repeat the last command ran (against the same pod)."
+    c.switch [:sp, :skip_prefix], negatable: false, default_value: false, desc: "Do not add configured command prefix."
 
     c.flag [:c, :command], desc: "Command to run once (not permanently stored)"
     c.flag [:f, :filter], desc: "Filter pods returned to those that contain the string provided (negative matches supported). Examples: '-f nginx', '-f -apache'"
     c.flag [:n, :namespace], required: true, default_value: config[:namespace], desc: "Namespace against which to retreive pods and run command"
     c.flag [:p, :pod], default_value: config[:pod], desc: "Run command in a specific pod. If used with -g only the pod name can be specified and the command will be run against the first in the group"
 
+    default_command_options = {
+      command_prefix: config[:command_prefix],
+    }
+
     c.action do |global_options, command_options, args|
-      RanchHand::KubeCtl.new.exec(args: args, cmd_options: command_options)
+      RanchHand::KubeCtl.new.exec(args: args, cmd_options: default_command_options.merge(command_options))
     end
   end
 

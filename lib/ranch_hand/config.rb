@@ -20,10 +20,11 @@ module RanchHand
     def self.generate_config
       namespace = prompt.ask('Namespace:')
       group = prompt.ask('Use group command by default? (Y/n):')
+      prefix = prompt.ask('Command prefix (optional):')
       group = %w(n N).include?(group) ? false : true
       pod = prompt.ask('Pod name:')
 
-      {
+        command_prefix: prefix,
         group: group,
         namespace: namespace,
         pod: pod

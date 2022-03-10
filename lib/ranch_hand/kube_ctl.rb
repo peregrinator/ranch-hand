@@ -13,9 +13,17 @@ module RanchHand
         repeat_command(namespace)
       elsif cmd_options[:command]
         pod = select_pod(namespace, cmd_options)
-        run_command(namespace, pod, cmd_options[:command], args)
+        run_command(namespace, pod, generate_command(cmd_options), args)
       else
         choose_command(namespace, cmd_options)
+      end
+    end
+
+    def generate_command(cmd_options)
+      if cmd_options[:skip_prefix]
+        command = cmd_options[:command]
+      else
+        command = "#{cmd_options[:command_prefix]} #{cmd_options[:command]}".strip
       end
     end
 

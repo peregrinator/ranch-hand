@@ -33,12 +33,30 @@ RSpec.describe RanchHand::KubeCtl do
       kube_ctl.exec(cmd_options: {namespace: 'test', repeat: true})
     end
 
-    it "requests pod and runs command passed via :command flag" do
-      namespace, pod, cmd, args = 'test', 'first-pod-1234567890-12345', 'test-command', ['a', 'b']
-      expect(kube_ctl).to receive(:select_pod).and_return(pod)
-      expect(kube_ctl).to receive(:run_command).with(namespace, pod, cmd, args)
+    describe "with command passed via :command flag" do
+      it "requests pod and runs command passed via :command flag" do
+        namespace, pod, cmd, args = 'test', 'first-pod-1234567890-12345', 'test-command', ['a', 'b']
+        expect(kube_ctl).to receive(:select_pod).and_return(pod)
+        expect(kube_ctl).to receive(:run_command).with(namespace, pod, cmd, args)
 
-      kube_ctl.exec(args: args, cmd_options: {namespace: namespace, command: cmd})
+        kube_ctl.exec(args: args, cmd_options: {namespace: namespace, command: cmd})
+      end
+
+      it "adds the configured :command_prefix when present" do
+        namespace, pod, cmd_prefix, cmd, args = 'test', 'first-pod-1234567890-12345', 'su - app', 'test-command', ['a', 'b']
+        expect(kube_ctl).to receive(:select_pod).and_return(pod)
+        expect(kube_ctl).to receive(:run_command).with(namespace, pod, "#{cmd_prefix} #{cmd}", args)
+
+        kube_ctl.exec(args: args, cmd_options: {namespace: namespace, command: cmd, command_prefix: cmd_prefix})
+      end
+
+      it "does not add the configured :command_prefix when :skip_prefix is set to true" do
+        namespace, pod, cmd_prefix, cmd, args = 'test', 'first-pod-1234567890-12345', 'su - app', 'test-command', ['a', 'b']
+        expect(kube_ctl).to receive(:select_pod).and_return(pod)
+        expect(kube_ctl).to receive(:run_command).with(namespace, pod, cmd, args)
+
+        kube_ctl.exec(args: args, cmd_options: {namespace: namespace, command: cmd, command_prefix: cmd_prefix, skip_prefix: true})
+      end
     end
   end
 
@@ -102,13 +120,13 @@ RSpec.describe RanchHand::KubeCtl do
       allow(kube_ctl).to receive(:pods).and_return(k8s_pods)
     end
 
-    it "saves selected pod to the latest" do  
+    it "saves selected pod to the latest" do
       # make a selection
       prompt.input << "1\n"
       prompt.input.rewind
 
       kube_ctl.select_pod('test')
-      
+
       expect(
         kube_ctl.send(:storage).get("exec:test:latest:pod")
       ).to eq(k8s_pods.first)
@@ -121,7 +139,7 @@ RSpec.describe RanchHand::KubeCtl do
         prompt.input.rewind
 
         kube_ctl.select_pod('test', {filter: "nginx"})
-        
+
         expect(
           prompt.output.string.split("Choose 1-").first.scan(/nginx/).size
         ).to eq(3)
@@ -129,14 +147,14 @@ RSpec.describe RanchHand::KubeCtl do
           prompt.output.string.include?('apache')
         ).to be(false)
       end
-    
+
       it "limits pods returned to those not matching the filter when passed a negative filter string" do
         # make a selection
         prompt.input << "1\n"
         prompt.input.rewind
 
         kube_ctl.select_pod('test', {filter: "-nginx"})
-        
+
         expect(
           prompt.output.string.include?('nginx')
         ).to be(false)
