@@ -1,3 +1,5 @@
+### 0.8.1
+- Bug fix for ohmyzsh shortcut that used wrong flag for skip prefix
 ### 0.8.0
 - Add ability to specify a command prefix that will be added to all commands run via `ranch-hand exec` by default (peregrinator/ranch-hand/issues/8)
 - Add ability to edit the project config file via new command `ranch-hand update_config` (peregrinator/ranch-hand/issues/9)
